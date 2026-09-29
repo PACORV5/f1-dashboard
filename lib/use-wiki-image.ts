@@ -1,6 +1,3 @@
-"use client"
-import { useEffect, useState } from "react"
-
 const LOGOS: Record<string, string> = {
   ferrari: "https://upload.wikimedia.org/wikipedia/commons/d/d1/Scuderia_Ferrari_Logo.png",
   mclaren: "https://upload.wikimedia.org/wikipedia/commons/0/0b/McLaren_Racing_logo.png",
@@ -14,34 +11,6 @@ const LOGOS: Record<string, string> = {
   sauber: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Stake_F1_Team_Kick_Sauber_logo.png",
   kick: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Stake_F1_Team_Kick_Sauber_logo.png",
   haas: "https://upload.wikimedia.org/wikipedia/commons/c/c0/Haas_F1_Team_Logo.png",
-}
-
-function findLogo(name: string) {
-  const low = name.toLowerCase()
-  for (const k in LOGOS) if (low.includes(k)) return LOGOS[k]
-  return null
-}
-
-async function fetchWikiThumb(title: string, size: number) {
-  try {
-    const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&piprop=thumbnail&pithumbsize=${size}&titles=${encodeURIComponent(title)}`
-    const r = await fetch(url)
-    const d = await r.json()
-    const page = Object.values(d.query.pages)[0] as any
-    return page?.thumbnail?.source || null
-  } catch { return null }
-}
-
-export function useWikiImage(name: string | null | undefined, size = 200) {
-  const [url, setUrl] = useState<string | null>(() => findLogo(name || "") || null)
-
-  useEffect(() => {
-    if (!name) return
-    const logo = findLogo(name)
-    if (logo) { setUrl(logo); return }
-
-    fetchWikiThumb(name, size).then(setUrl)
-  }, [name, size])
-
-  return url
+  audi: "https://upload.wikimedia.org/wikipedia/commons/8/8b/Audi_Sport_logo.png",
+  cadillac: "https://upload.wikimedia.org/wikipedia/commons/8/83/Cadillac_F1_Team_logo.png",
 }
