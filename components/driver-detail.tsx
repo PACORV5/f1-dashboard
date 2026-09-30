@@ -1,127 +1,108 @@
 "use client"
+import { X, MapPin, Trophy, Timer, Flag, TrendingUp } from "lucide-react"
 
-import type { DriverStanding } from "@/lib/types"
-import { ageFromDob } from "@/lib/f1-utils"
-import { FavButton } from "@/components/fav-button"
-import { DriverAvatar } from "@/components/driver-avatar"
-import { Flag } from "@/components/flag"
-import { useI18n } from "@/lib/i18n"
-
-type RaceResult = {
-  name: string
-  circuit: string
-  position: string
+type Props = {
+  driver: any
+  onClose?: () => void
 }
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-zinc-800/80 px-3 py-3 text-center">
-      <p className="font-mono text-xl font-bold tabular-nums text-zinc-900 dark:text-white">{value}</p>
-      <p className="mt-1 text-[10px] font-medium uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{label}</p>
+    <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-white/10 dark:bg-[#27272a]">
+      <div className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{label}</div>
+      <div className="mt-1 text-sm font-bold text-zinc-900 dark:text-white">{value}</div>
     </div>
   )
 }
 
-function RaceRow({ race }: { race: RaceResult }) {
+function RaceRow({ race }: { race: any }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-[#27272a] px-4 py-3">
-      <div className="min-w-0">
-        <p className="truncate text-[13px] font-semibold text-zinc-900 dark:text-white">{race.name}</p>
-        <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{race.circuit}</p>
+    <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-white/10 dark:bg-[#27272a]">
+      <div className="flex items-center gap-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white dark:bg-zinc-700">
+          <MapPin className="h-4 w-4 text-zinc-500 dark:text-zinc-300" />
+        </div>
+        <div>
+          <div className="text-sm font-semibold text-zinc-900 dark:text-white">{race.name || race.grandPrix || `R${race.round}`}</div>
+          <div className="text-xs text-zinc-500 dark:text-zinc-400">{race.circuit || race.date}</div>
+        </div>
       </div>
-      <span className="ml-3 shrink-0 rounded-full bg-zinc-200 px-2.5 py-1 text-xs font-bold text-zinc-900 dark:bg-zinc-700 dark:text-white">
-        {race.position}
-      </span>
+      <div className="text-right">
+        <div className="text-sm font-bold text-zinc-900 dark:text-white">P{race.position || race.pos || "-"}</div>
+        <div className="text-xs text-zinc-500 dark:text-zinc-400">{race.points? `${race.points} pts` : race.time || ""}</div>
+      </div>
     </div>
   )
 }
 
-export function DriverDetail({ driver }: { driver: DriverStanding & { recentRaces?: RaceResult[] } }) {
-  const { t, translateNationality } = useI18n() as any
-  const age = ageFromDob(driver.dob)
-  const color = driver.teamColor
-  const natTranslated = translateNationality(driver.nationality)
+export function DriverDetail({ driver, onClose }: Props) {
+  if (!driver) return null
 
-  // Si tu driver ya trae carreras úsalas, si no usa las de ejemplo de tu foto
-  const races: RaceResult[] = (driver as any).recentRaces || [
-    { name: "Azerbaijan Grand Prix", circuit: "Baku City Circuit", position: "P19" },
-    { name: "Spanish Grand Prix", circuit: "Circuit de Catalunya", position: "P18" },
-    { name: "Monaco Grand Prix", circuit: "Circuit de Monaco", position: "P14" },
-    { name: "Emilia Romagna Grand Prix", circuit: "Autodromo Enzo e Dino Ferrari", position: "P19" },
-    { name: "Miami Grand Prix", circuit: "Miami International Autodrome", position: "P19" },
-  ]
+  const teamColor = driver.teamColor || driver.color || "#ff1801"
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white text-zinc-900 dark:border-white/10 dark:bg-[#18181b] dark:text-white">
+    <div className="overflow-hidden bg-transparent">
       {/* Header */}
-      <div
-        className="relative flex items-center gap-4 px-5 pb-5 pt-8"
-        style={{ background: `linear-gradient(135deg, ${color}22, transparent 75%)` }}
-      >
-        <span className="absolute inset-x-0 bottom-0 h-0.5" style={{ backgroundColor: color }} />
-        <DriverAvatar name={driver.name} color={color} size={64} />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-sm font-bold tabular-nums" style={{ color }}>
-              #{driver.number}
-            </span>
-            <FavButton kind="driver" id={driver.code} size="lg" />
+      <div className="relative p-6" style={{ backgroundColor: teamColor }}>
+        <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-black/60" />
+        <div className="relative flex items-start gap-4">
+          <img src={driver.image || driver.photo || "/placeholder.svg"} alt={driver.name} className="h-20 w-20 rounded-2xl border-2 border-white/20 object-cover shadow-xl" />
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-white/20 px-2.5 py-1 text-xs font-bold text-white backdrop-blur">#{driver.number || driver.driverNumber}</span>
+              <span className="rounded-full bg-black/30 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">{driver.team || driver.constructor}</span>
+            </div>
+            <h2 className="mt-3 text-2xl font-black leading-none text-white">{driver.name || `${driver.firstName} ${driver.lastName}`}</h2>
+            <p className="mt-1 text-sm font-medium text-white/80">{driver.country || driver.nationality}</p>
           </div>
-          <h2 className="truncate text-xl font-bold text-zinc-900 dark:text-white">{driver.name}</h2>
-          <p className="truncate text-sm text-zinc-500 dark:text-zinc-400">{driver.teamName}</p>
         </div>
       </div>
 
-      <div className="space-y-5 px-5 py-5">
-        {/* Info */}
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          <div className="flex items-center gap-1.5">
-            <span className="text-zinc-500 dark:text-zinc-400">{t("driver.nationality")}: </span>
-            <Flag nationality={driver.nationality} />
-            <span className="font-medium text-zinc-900 dark:text-white">{natTranslated}</span>
-          </div>
-          {age!== null && (
-            <div>
-              <span className="text-zinc-500 dark:text-zinc-400">{t("driver.age")}: </span>
-              <span className="font-medium text-zinc-900 dark:text-white">{age}</span>
+      {/* Body */}
+      <div className="space-y-6 p-6">
+        <div className="grid grid-cols-3 gap-3">
+          <Stat label="Posición" value={driver.position || driver.pos || "-"} />
+          <Stat label="Puntos" value={driver.points || driver.pts || "0"} />
+          <Stat label="Victorias" value={driver.wins || "0"} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-[#27272a]">
+            <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+              <Trophy className="h-4 w-4" /> <span className="text-xs font-semibold uppercase">Podios</span>
             </div>
-          )}
+            <div className="mt-2 text-xl font-black text-zinc-900 dark:text-white">{driver.podiums || "0"}</div>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-[#27272a]">
+            <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+              <Timer className="h-4 w-4" /> <span className="text-xs font-semibold uppercase">Vueltas Rápidas</span>
+            </div>
+            <div className="mt-2 text-xl font-black text-zinc-900 dark:text-white">{driver.fastestLaps || "0"}</div>
+          </div>
+        </div>
+
+        {driver.races && driver.races.length > 0 && (
           <div>
-            <span className="text-zinc-500 dark:text-zinc-400">{t("driver.code")}: </span>
-            <span className="font-medium text-zinc-900 dark:text-white">{driver.code}</span>
+            <div className="mb-3 flex items-center gap-2">
+              <Flag className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+              <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-700 dark:text-zinc-300">Últimas Carreras</h3>
+            </div>
+            <div className="space-y-2">
+              {driver.races.slice(0, 5).map((r: any, i: number) => (
+                <RaceRow key={i} race={r} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-2">
-          <Stat label={t("driver.position")} value={`P${driver.position}`} />
-          <Stat label={t("driver.points")} value={driver.points} />
-          <Stat label={t("driver.wins")} value={driver.wins} />
-        </div>
-
-        <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
-          {t("driver.bio", {
-            name: driver.name,
-            nationality: natTranslated.toLowerCase(),
-            team: driver.teamName,
-            number: driver.number,
-            position: driver.position,
-            points: driver.points,
-            wins: driver.wins,
-          })}
-        </p>
-
-        {/* Ultimas carreras - ESTO era lo que se veía mal */}
-        <div className="space-y-3">
-          <h3 className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-            {t("driver.lastRaces") || "ÚLTIMAS 5 CARRERAS"}
-          </h3>
-          <div className="space-y-2">
-            {races.map((r) => (
-              <RaceRow key={r.name} race={r} />
-            ))}
+        {driver.bio && (
+          <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-[#27272a]">
+            <div className="mb-2 flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+              <TrendingUp className="h-4 w-4" /> <span className="text-xs font-semibold uppercase">Biografía</span>
+            </div>
+            <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">{driver.bio}</p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
