@@ -5,6 +5,7 @@ import type { Constructor, DriverStanding } from "@/lib/types"
 import { FavButton } from "@/components/fav-button"
 import { Modal } from "@/components/modal"
 import { TeamDetail } from "@/components/team-detail"
+import { DriverDetail } from "@/components/driver-detail"
 
 export function ConstructorStandings({
   standings,
@@ -14,7 +15,8 @@ export function ConstructorStandings({
   drivers: DriverStanding[]
 }) {
   const [selected, setSelected] = useState<Constructor | null>(null)
-  const maxPoints = standings[0]?.points ?? 1
+  const [selectedDriver, setSelectedDriver] = useState<DriverStanding | null>(null)
+  const maxPoints = standings[0]?.points?? 1
 
   return (
     <div className="space-y-2">
@@ -44,8 +46,21 @@ export function ConstructorStandings({
         </div>
       ))}
 
-      <Modal open={selected !== null} onClose={() => setSelected(null)} label="Team details">
-        {selected && <TeamDetail team={selected} drivers={drivers} />}
+      <Modal open={selected!== null} onClose={() => setSelected(null)} label="Team details">
+        {selected && (
+          <TeamDetail
+            team={selected}
+            drivers={drivers}
+            onSelectDriver={(d) => {
+              setSelected(null)
+              setTimeout(() => setSelectedDriver(d), 250)
+            }}
+          />
+        )}
+      </Modal>
+
+      <Modal open={selectedDriver!== null} onClose={() => setSelectedDriver(null)} label="Driver details">
+        {selectedDriver && <DriverDetail driver={selectedDriver} />}
       </Modal>
     </div>
   )

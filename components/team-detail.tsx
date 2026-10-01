@@ -16,7 +16,15 @@ function Info({ label, value }: { label: string; value: string | number }) {
   )
 }
 
-export function TeamDetail({ team, drivers }: { team: Constructor; drivers: DriverStanding[] }) {
+export function TeamDetail({
+  team,
+  drivers,
+  onSelectDriver
+}: {
+  team: Constructor;
+  drivers: DriverStanding[];
+  onSelectDriver?: (d: DriverStanding) => void;
+}) {
   const { t, translateNationality } = useI18n() as any
   const color = team.color
   const lineup = drivers.filter((d) => d.teamId === team.id).sort((a, b) => b.points - a.points)
@@ -71,12 +79,17 @@ export function TeamDetail({ team, drivers }: { team: Constructor; drivers: Driv
             <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t("team.lineup")}</p>
             <ul className="space-y-1.5">
               {lineup.map((d) => (
-                <li key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-background/40 px-3 py-2">
-                  <span className="w-8 font-mono text-xs font-bold tabular-nums" style={{ color }}>
-                    #{d.number}
-                  </span>
-                  <span className="flex-1 truncate text-sm font-semibold text-foreground">{d.name}</span>
-                  <span className="font-mono text-xs tabular-nums text-muted-foreground">{d.points} {t("driver.pts")}</span>
+                <li key={d.id}>
+                  <button
+                    onClick={() => onSelectDriver?.(d)}
+                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-background/40 px-3 py-2 text-left hover:bg-muted/60 hover:border-foreground/20 transition-colors active:scale-[0.98]"
+                  >
+                    <span className="w-8 font-mono text-xs font-bold tabular-nums" style={{ color }}>
+                      #{d.number}
+                    </span>
+                    <span className="flex-1 truncate text-sm font-semibold text-foreground">{d.name}</span>
+                    <span className="font-mono text-xs tabular-nums text-muted-foreground">{d.points} {t("driver.pts")}</span>
+                  </button>
                 </li>
               ))}
             </ul>

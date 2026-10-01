@@ -5,6 +5,7 @@ import type { Constructor, DriverStanding } from "@/lib/types"
 import { FavButton } from "@/components/fav-button"
 import { Modal } from "@/components/modal"
 import { TeamDetail } from "@/components/team-detail"
+import { DriverDetail } from "@/components/driver-detail" // <-- ajusta si se llama diferente
 import { Flag } from "@/components/flag"
 import { TeamLogo } from "@/components/team-logo"
 import { teamWikiTitle } from "@/lib/f1-media"
@@ -23,7 +24,7 @@ export function TeamCard({
   return (
     <div className="group flex flex-col rounded-xl border border-border bg-card p-4 transition-colors hover:border-foreground/20">
       <div className="flex items-start gap-3">
-        <TeamLogo title={teamWikiTitle(team) ?? team.name} name={team.name} color={team.color} size={40} />
+        <TeamLogo title={teamWikiTitle(team)?? team.name} name={team.name} color={team.color} size={40} />
         <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
           <p className="truncate text-sm font-bold text-foreground">{team.name}</p>
           <p className="flex items-center gap-1.5 truncate text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -55,6 +56,7 @@ export function TeamCard({
 
 export function TeamsPanel({ teams, drivers }: { teams: Constructor[]; drivers: DriverStanding[] }) {
   const [selected, setSelected] = useState<Constructor | null>(null)
+  const [selectedDriver, setSelectedDriver] = useState<DriverStanding | null>(null)
 
   return (
     <div>
@@ -64,8 +66,21 @@ export function TeamsPanel({ teams, drivers }: { teams: Constructor[]; drivers: 
         ))}
       </div>
 
-      <Modal open={selected !== null} onClose={() => setSelected(null)} label="Team details">
-        {selected && <TeamDetail team={selected} drivers={drivers} />}
+      <Modal open={selected!== null} onClose={() => setSelected(null)} label="Team details">
+        {selected && (
+          <TeamDetail
+            team={selected}
+            drivers={drivers}
+            onSelectDriver={(d) => {
+              setSelected(null)
+              setTimeout(() => setSelectedDriver(d), 250)
+            }}
+          />
+        )}
+      </Modal>
+
+      <Modal open={selectedDriver!== null} onClose={() => setSelectedDriver(null)} label="Driver details">
+        {selectedDriver && <DriverDetail driver={selectedDriver} />}
       </Modal>
     </div>
   )
