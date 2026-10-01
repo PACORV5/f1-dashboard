@@ -150,11 +150,6 @@ export default function SignUpPage() {
           </button>
         </form>
 
-        <div className="my-4 flex items-center gap-3">
-          <span className="h-px flex-1 bg-border" />
-          <span className="text-[11px] uppercase tracking-widest text-muted-foreground">{t("auth.or")}</span>
-          <span className="h-px flex-1 bg-border" />
-        </div>
 
       </AuthShell>
     </div>
