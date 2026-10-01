@@ -1,56 +1,57 @@
 "use client"
 
-import { useEffect, type ReactNode } from "react"
-import { X } from "lucide-react"
+import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 
 export function Modal({
   open,
   onClose,
   label,
-  children,
+  children
 }: {
   open: boolean
   onClose: () => void
   label: string
-  children: ReactNode
+  children: React.ReactNode
 }) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
+
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => {
+    const onEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose()
     }
-    window.addEventListener("keydown", onKey)
+    document.addEventListener("keydown", onEsc)
     document.body.style.overflow = "hidden"
     return () => {
-      window.removeEventListener("keydown", onKey)
+      document.removeEventListener("keydown", onEsc)
       document.body.style.overflow = ""
     }
   }, [open, onClose])
 
-  if (!open) return null
+  if (!open ||!mounted) return null
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={label}
-    >
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center">
       <div
-        className="relative max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-zinc-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#18181b] sm:rounded-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 backdrop-blur transition-colors hover:bg-zinc-200 hover:text-zinc-900 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 dark:hover:text-white"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="relative z-10 w-full max-w-lg max-h-[90dvh] overflow-y-auto rounded-t-2xl sm:rounded-xl border border-border bg-background p-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
+          <button
+            onClick={onClose}
+            className="rounded-full bg-foreground/10 px-3 py-1 text-xs font-bold hover:bg-foreground/15"
+          >
+            ✕
+          </button>
+        </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
