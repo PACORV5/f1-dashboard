@@ -1,64 +1,91 @@
 "use client"
-import { DriverDetail } from "./driver-detail"
 
-type Props = {
-  team: any
-  driversList?: any[]
-  onClose: () => void
-  onSelectDriver?: (d: any) => void
+import type { Constructor, DriverStanding } from "@/lib/types"
+import { Flag } from "@/components/flag"
+import { TeamLogo } from "@/components/team-logo"
+import { teamWikiTitle } from "@/lib/f1-media"
+
+function normalize(s: string) {
+  return (s || "").toLowerCase().replace(/[^a-z0-9]/g, "")
 }
 
-export function TeamDetail({ team, driversList = [], onClose, onSelectDriver }: Props) {
-  const teamName = team.name || team.teamName || "Team"
-  const lineup = team.drivers || team.lineup || team.pilots || []
+export function TeamDetail({
+  team,
+  drivers,
+  onSelectDriver,
+}: {
+  team: Constructor
+  drivers: DriverStanding[]
+  onSelectDriver?: (d: any) => void
+}) {
+  const tId = normalize(team.id)
+  const tName = normalize(team.name)
 
-  const handlePilotClick = (p: any, e: React.MouseEvent) => {
-    e.stopPropagation()
-    // busca el piloto completo para que no truene el modal
-    const full = driversList.find(
-      (d) => d.code === p.code || d.acronym === p.code || d.name === p.name || `${d.firstName} ${d.lastName}` === p.name
-    ) || p
-
-    if (onSelectDriver) {
-      onSelectDriver(full)
-    }
-  }
+  const lineup = (drivers || []).filter((d: any) => {
+    const dId = normalize(d.teamId || "")
+    const dName = normalize(d.teamName || d.Constructor?.name || d.constructorId || "")
+    const dConstructorId = normalize(d.Constructor?.constructorId || "")
+    return (
+      dId === tId ||
+      dId === tName ||
+      dName === tName ||
+      dName === tId ||
+      dConstructorId === tId ||
+      d.teamId === team.name ||
+      d.teamId === team.id
+    )
+  }).sort((a,b) => b.points - a.points)
 
   return (
-    <div className="space-y-5 text-white">
-      <div className="flex gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-black font-bold">
-          {teamName.slice(0,2).toUpperCase()}
-        </div>
-        <div>
-          <h2 className="text-[22px] font-bold">{teamName}</h2>
-          <p className="text-sm text-white/50">{team.nationality || ""}</p>
+    <div className="space-y-5 p-1">
+      <div className="flex items-start gap-4">
+        <TeamLogo title={teamWikiTitle(team)?? team.name} name={team.name} color={team.color} size={56} />
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold text-foreground">{team.name}</h2>
+          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+            <Flag nationality={team.nationality} /> {team.nationality} · P{team.position} · {team.points} pts
+          </p>
+          <div className="mt-2 h-1 w-full rounded-full" style={{ background: team.color }} />
         </div>
       </div>
 
-      <div className="border-t border-white/10 pt-5">
-        <p className="mb-3 text-[11px] font-bold tracking-widest text-white/60">ALINEACIÓN 2026</p>
-        <div className="grid grid-cols-1 gap-2">
-          {lineup.map((p: any, i: number) => (
+      <div>
+        <h3 className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          Pilotos · {lineup.length}
+        </h3>
+        <div className="grid gap-2">
+          {lineup.length > 0? lineup.map((d: any) => (
             <button
-              key={i}
+              key={d.id}
               type="button"
-              onClick={(e) => handlePilotClick(p, e)}
-              className="flex items-center gap-3 rounded-xl bg-white/[0.06] px-4 py-3 text-left hover:bg-white/[0.10] transition-colors"
+              onClick={() => onSelectDriver?.(d)}
+              className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2.5 text-left transition-colors hover:bg-foreground/[0.04]"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-black font-bold text-sm">
-                {p.code?.slice(0,2) || p.name?.slice(0,2) || "AN"}
-              </div>
               <div className="min-w-0">
-                <p className="text-[15px] font-medium">{p.name || `${p.firstName} ${p.lastName}`}</p>
-                <p className="text-xs text-white/50">#{p.number || p.driverNumber || "-"} • {p.code || ""}</p>
+                <p className="truncate text-sm font-semibold text-foreground">
+                  <span className="font-mono mr-2" style={{ color: team.color }}>#{d.number}</span>
+                  {d.givenName} {d.familyName}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  P{d.position} · {d.points} pts · {d.code}
+                </p>
               </div>
+              <span className="ml-2 shrink-0 text-xs text-muted-foreground">→</span>
             </button>
-          ))}
-          {lineup.length === 0 && (
-            <p className="py-6 text-center text-sm text-white/40">Sin pilotos</p>
+          )) : (
+            <p className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+              No se encontraron pilotos para este equipo. teamId: {team.id}
+            </p>
           )}
         </div>
+      </div>
+
+      <div className="rounded-lg bg-foreground/[0.03] p-3">
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          Constructor: <span className="font-semibold text-foreground">{team.name}</span> ·
+          Base: {team.nationality} · Total: {team.points} pts ·
+          Posición: P{team.position}
+        </p>
       </div>
     </div>
   )
