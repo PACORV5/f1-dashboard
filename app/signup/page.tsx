@@ -6,7 +6,6 @@ import Link from "next/link"
 import { MailCheck, ArrowLeft } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { AuthShell, inputClass, labelClass, primaryButtonClass } from "@/components/auth-shell"
-import { GoogleButton } from "@/components/google-button"
 import { useI18n } from "@/lib/i18n"
 
 function authRedirect() {
@@ -157,7 +156,6 @@ export default function SignUpPage() {
           <span className="h-px flex-1 bg-border" />
         </div>
 
-        <GoogleButton label={t("auth.google")} />
       </AuthShell>
     </div>
   )
