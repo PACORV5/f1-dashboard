@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import type { Constructor, DriverStanding } from "@/lib/types"
 import { FavButton } from "@/components/fav-button"
 import { Modal } from "@/components/modal"
@@ -45,14 +45,34 @@ export function TeamsPanel({ teams, drivers }: { teams: Constructor[]; drivers: 
   const [selected, setSelected] = useState<Constructor | null>(null)
   const [selectedDriver, setSelectedDriver] = useState<any>(null)
 
+  // Fix scroll lock: solo bloquea si hay alguno abierto
+  useEffect(() => {
+    const isOpen =!!selected ||!!selectedDriver
+    if (isOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => { document.body.style.overflow = "" }
+  }, [selected, selectedDriver])
+
   const enrichDriver = (d: DriverStanding) => {
     const team = teams.find((t) => t.id === d.teamId)
     return {
-     ...d,
+    ...d,
       teamName: team?.name,
       teamColor: team?.color,
       teamNationality: team?.nationality,
     }
+  }
+
+  const handleSelectDriverFromTeam = (d: any) => {
+    // Cierra equipo primero
+    setSelected(null)
+    // Abre piloto después de que el Modal del equipo se desmonte
+    setTimeout(() => {
+      setSelectedDriver(enrichDriver(d))
+    }, 350)
   }
 
   return (
@@ -63,22 +83,22 @@ export function TeamsPanel({ teams, drivers }: { teams: Constructor[]; drivers: 
         ))}
       </div>
 
-      <Modal open={selected!== null} onClose={() => setSelected(null)} label="Team details">
-        {selected && (
+      {/* Solo renderiza UN modal a la vez */}
+      {selected &&!selectedDriver && (
+        <Modal open={true} onClose={() => setSelected(null)} label="Team details">
           <TeamDetail
             team={selected}
             drivers={drivers}
-            onSelectDriver={(d) => {
-              setSelected(null)
-              setTimeout(() => setSelectedDriver(enrichDriver(d)), 250)
-            }}
+            onSelectDriver={handleSelectDriverFromTeam}
           />
-        )}
-      </Modal>
+        </Modal>
+      )}
 
-      <Modal open={selectedDriver!== null} onClose={() => setSelectedDriver(null)} label="Driver details">
-        {selectedDriver && <DriverDetail driver={selectedDriver} />}
-      </Modal>
+      {selectedDriver && (
+        <Modal open={true} onClose={() => setSelectedDriver(null)} label="Driver details">
+          <DriverDetail driver={selectedDriver} />
+        </Modal>
+      )}
     </div>
   )
 }
