@@ -5,22 +5,13 @@ import type { Constructor, DriverStanding } from "@/lib/types"
 import { FavButton } from "@/components/fav-button"
 import { Modal } from "@/components/modal"
 import { TeamDetail } from "@/components/team-detail"
-import { DriverDetail } from "@/components/driver-detail" // <-- ajusta si se llama diferente
+import { DriverDetail } from "@/components/driver-detail"
 import { Flag } from "@/components/flag"
 import { TeamLogo } from "@/components/team-logo"
 import { teamWikiTitle } from "@/lib/f1-media"
 
-export function TeamCard({
-  team,
-  drivers,
-  onOpen,
-}: {
-  team: Constructor
-  drivers: DriverStanding[]
-  onOpen: () => void
-}) {
+export function TeamCard({ team, drivers, onOpen }: { team: Constructor; drivers: DriverStanding[]; onOpen: () => void }) {
   const lineup = drivers.filter((d) => d.teamId === team.id).sort((a, b) => b.points - a.points)
-
   return (
     <div className="group flex flex-col rounded-xl border border-border bg-card p-4 transition-colors hover:border-foreground/20">
       <div className="flex items-start gap-3">
@@ -33,15 +24,11 @@ export function TeamCard({
         </button>
         <FavButton kind="team" id={team.id} />
       </div>
-
       <button type="button" onClick={onOpen} className="mt-3 flex items-end justify-between text-left">
         <ul className="min-w-0 space-y-0.5">
           {lineup.map((d) => (
             <li key={d.id} className="truncate text-xs text-muted-foreground">
-              <span className="font-mono" style={{ color: team.color }}>
-                {d.number}
-              </span>{" "}
-              {d.familyName}
+              <span className="font-mono" style={{ color: team.color }}>{d.number}</span> {d.familyName}
             </li>
           ))}
         </ul>
@@ -56,7 +43,17 @@ export function TeamCard({
 
 export function TeamsPanel({ teams, drivers }: { teams: Constructor[]; drivers: DriverStanding[] }) {
   const [selected, setSelected] = useState<Constructor | null>(null)
-  const [selectedDriver, setSelectedDriver] = useState<DriverStanding | null>(null)
+  const [selectedDriver, setSelectedDriver] = useState<any>(null)
+
+  const enrichDriver = (d: DriverStanding) => {
+    const team = teams.find((t) => t.id === d.teamId)
+    return {
+     ...d,
+      teamName: team?.name,
+      teamColor: team?.color,
+      teamNationality: team?.nationality,
+    }
+  }
 
   return (
     <div>
@@ -73,7 +70,7 @@ export function TeamsPanel({ teams, drivers }: { teams: Constructor[]; drivers: 
             drivers={drivers}
             onSelectDriver={(d) => {
               setSelected(null)
-              setTimeout(() => setSelectedDriver(d), 250)
+              setTimeout(() => setSelectedDriver(enrichDriver(d)), 250)
             }}
           />
         )}

@@ -19,8 +19,32 @@ export function SessionSchedule({ races }: { races: RaceEvent[] }) {
   const [selected, setSelected] = useState<RaceEvent | null>(null)
   const nextRound = races.find((r) => r.status === "UPCOMING")?.round
 
-  const statusLabel = (status: RaceEvent["status"]) =>
-    status === "LIVE" ? t("status.live") : status === "UPCOMING" ? t("status.upcoming") : t("status.finished")
+  const safeT = (key: string, fallback: string, params?: any) => {
+    try {
+      const translated = t(key as any, params)
+      // si la librería devuelve la misma key, es que no existe
+      if (!translated || translated === key || translated.includes(".")) {
+        if (params?.days!= null) return fallback.replace("{days}", String(params.days))
+        return fallback
+      }
+      return translated
+    } catch {
+      if (params?.days!= null) return fallback.replace("{days}", String(params.days))
+      return fallback
+    }
+  }
+
+  const statusLabel = (status: RaceEvent["status"]) => {
+    if (status === "LIVE") return safeT("status.live", "EN VIVO")
+    if (status === "UPCOMING") return safeT("status.upcoming", "PRÓXIMO")
+    return safeT("status.finished", "FINALIZADO")
+  }
+
+  const countdownLabel = (days: number) => {
+    if (days === 0) return safeT("countdown.today", "Hoy")
+    if (days === 1) return safeT("countdown.inDays", "en 1 día", { days })
+    return safeT("countdown.inDays", `en ${days} días`, { days })
+  }
 
   return (
     <>
@@ -33,7 +57,7 @@ export function SessionSchedule({ races }: { races: RaceEvent[] }) {
                 type="button"
                 onClick={() => setSelected(race)}
                 className={`flex w-full items-center gap-3 rounded-lg border bg-card px-3 py-3 text-left transition-colors hover:border-f1-red/50 hover:bg-foreground/5 ${
-                  isNext ? "border-f1-gold/40" : "border-border"
+                  isNext? "border-f1-gold/40" : "border-border"
                 }`}
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-background font-mono text-xs font-bold text-muted-foreground">
@@ -54,9 +78,9 @@ export function SessionSchedule({ races }: { races: RaceEvent[] }) {
                   >
                     {statusLabel(race.status)}
                   </span>
-                  {race.status === "UPCOMING" && race.daysUntil != null && (
+                  {race.status === "UPCOMING" && race.daysUntil!= null && (
                     <span className="font-mono text-[10px] tabular-nums text-muted-foreground">
-                      {race.daysUntil === 0 ? t("countdown.today") : t("countdown.inDays", { days: race.daysUntil })}
+                      {countdownLabel(race.daysUntil)}
                     </span>
                   )}
                 </div>
